@@ -17,8 +17,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.sabersinfin.entity.Genero;
 import com.sabersinfin.entity.Libro;
+import com.sabersinfin.entity.Usuario;
 import com.sabersinfin.servicesImpl.GeneroServices;
 import com.sabersinfin.servicesImpl.LibroServices;
+import com.sabersinfin.servicesImpl.UsuarioServices;
 import com.sabersinfin.utils.NotFoundException;
 
 @RestController
@@ -31,6 +33,9 @@ public class LibroController {
 
 	@Autowired
 	private GeneroServices serGenero;
+	
+	@Autowired
+	private UsuarioServices serUsuario;
 
 	@GetMapping("/lista")
 	public ResponseEntity<List<Libro>> lista() {
@@ -39,15 +44,18 @@ public class LibroController {
 
 	@PostMapping("/registrar")
 	public ResponseEntity<String> registrar(@RequestBody Libro bean) {
-		Libro lib = serLibro.registrar(bean);
+	
+		bean.setRegistro(LocalDate.now());
 
-		lib.setRegistro(LocalDate.now());
+		bean.setEstado(1);
 
-		lib.setEstado(1);
+		Usuario u = validarUsuario(bean.getUsuario().getId());
+		
+		bean.setUsuario(u);
+		
+		serLibro.registrar(bean);
 
-		serLibro.registrar(lib);
-
-		return ResponseEntity.status(HttpStatus.CREATED).body("Libro " + lib.getTitulo() + " registrado correctamente");
+		return ResponseEntity.status(HttpStatus.CREATED).body("Libro " + bean.getTitulo() + " registrado correctamente");
 	}
 
 	@PutMapping("/actualizar")
@@ -98,5 +106,13 @@ public class LibroController {
 			throw new NotFoundException();
 		}
 		return g;
+	}
+	
+	private Usuario validarUsuario(Integer codigo) {
+		Usuario u = serUsuario.buscarPorId(codigo);
+		if (u == null) {
+			throw new NotFoundException();
+		}
+		return u;
 	}
 }

@@ -38,6 +38,9 @@ public class Libro {
     @Column(name = "archivo", nullable = false)
     private String archivo;
     
+    @Column(name = "portada", nullable = false)
+    private String portada;
+    
     @Column(name = "registro", nullable = false)
     private LocalDate registro;
 
@@ -46,7 +49,6 @@ public class Libro {
 
     @ManyToOne
     @JoinColumn(name = "id_usuario")
-    @JsonIgnore
     private Usuario usuario;
 
     @OneToMany(mappedBy = "libro")

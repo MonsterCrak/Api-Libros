@@ -43,6 +43,7 @@ public class Usuario {
 
     @ManyToOne
     @JoinColumn(name = "id_rol")
+    @JsonIgnore
     private Rol rol;
 
     @OneToMany(mappedBy = "usuario")

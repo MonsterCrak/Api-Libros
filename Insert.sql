@@ -12,7 +12,7 @@ insert into tb_enlace values
 insert into tb_rol_has_enlace values
 (1, 1),
 (2, 2),
-(3, 2);
+(3, 1);
 
 insert into tb_genero values
 (1, 'Ciencia Ficción'),
