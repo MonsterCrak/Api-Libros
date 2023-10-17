@@ -22,4 +22,6 @@ insert into tb_genero values
 (5, 'Romance'),
 (6, 'Terror');
 
+Insert into tb_usuario values
+(1, 'a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3','admin@email.com',1 ,'admin', now(), 1);
 
