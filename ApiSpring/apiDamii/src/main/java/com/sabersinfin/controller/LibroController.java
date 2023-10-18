@@ -1,5 +1,6 @@
 package com.sabersinfin.controller;
 
+import java.io.Console;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -49,9 +50,17 @@ public class LibroController {
 
 		bean.setEstado(1);
 
-		Usuario u = validarUsuario(bean.getUsuario().getId());
+		if (bean.getUsuario().getId() == 0) {
+		    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Falta de usuario");
+		}else {
+			Usuario u = serUsuario.buscarPorId(bean.getUsuario().getId());
+			if (u == null) {
+		        throw new NotFoundException();
+		    }
+			bean.setUsuario(u);
+		}
 		
-		bean.setUsuario(u);
+		
 		
 		serLibro.registrar(bean);
 

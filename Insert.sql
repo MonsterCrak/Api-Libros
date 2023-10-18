@@ -9,10 +9,11 @@ insert into tb_enlace values
 (2, 'Dashboard', 1, '/inicio/dashboard'),
 (3, 'Libros', 1, '/inicio/libros');
 
-insert into tb_rol_has_enlace values
+insert into tb_rol_has_enlace values 
 (1, 1),
 (2, 2),
 (3, 1);
+
 
 insert into tb_genero values
 (1, 'Ciencia Ficción'),
