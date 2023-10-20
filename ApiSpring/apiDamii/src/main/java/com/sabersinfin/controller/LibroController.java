@@ -1,9 +1,16 @@
 package com.sabersinfin.controller;
 
-import java.io.Console;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.List;
 
+import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,15 +21,27 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
 
 import com.sabersinfin.entity.Genero;
 import com.sabersinfin.entity.Libro;
 import com.sabersinfin.entity.Usuario;
 import com.sabersinfin.servicesImpl.GeneroServices;
+
 import com.sabersinfin.servicesImpl.LibroServices;
 import com.sabersinfin.servicesImpl.UsuarioServices;
 import com.sabersinfin.utils.NotFoundException;
+
+import jakarta.servlet.http.HttpServletResponse;
+
+import org.springframework.web.multipart.MultipartFile;
+
+
+import org.springframework.http.MediaType;
+
+
 
 @RestController
 @RequestMapping("api/libro")
@@ -34,39 +53,110 @@ public class LibroController {
 
 	@Autowired
 	private GeneroServices serGenero;
-	
+
 	@Autowired
 	private UsuarioServices serUsuario;
 
+    private final String RUTA_RECURSOS = "http://localhost:8092/api/libro/archivos";
+
+        
+
 	@GetMapping("/lista")
 	public ResponseEntity<List<Libro>> lista() {
+		
+		List<Libro> libros = serLibro.listarTodos();
+		
+		 for (Libro libro : libros) {
+		        libro.setArchivo(RUTA_RECURSOS + "/pdfs/" + libro.getArchivo());
+		        libro.setPortada(RUTA_RECURSOS + "/portadas/"+libro.getPortada());
+		    }
+		
 		return new ResponseEntity<>(serLibro.listarTodos(), HttpStatus.OK);
 	}
-
-	@PostMapping("/registrar")
-	public ResponseEntity<String> registrar(@RequestBody Libro bean) {
 	
+	
+	@GetMapping("/archivos/{tipo}/{nombre}")
+    public void servirArchivo(@PathVariable String tipo, @PathVariable String nombre,
+                              HttpServletResponse response) throws IOException {
+        String ruta = "src/main/resources/" + tipo + "/" + nombre;
+        File archivo = new File(ruta);
+
+        InputStream inputStream = new FileInputStream(archivo);
+        IOUtils.copy(inputStream, response.getOutputStream());
+
+        response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
+        response.setHeader("Content-Disposition", "attachment; filename=" + nombre);
+        response.flushBuffer();
+    }
+	
+	
+	@PostMapping("/registrar")
+	public ResponseEntity<String> registrar(@RequestParam("archivo") MultipartFile[] archivo,
+			@RequestParam("portada") MultipartFile[] portada, @RequestParam("titulo") String titulo,
+			@RequestParam("descripcion") String descripcion, @RequestParam("autor") String autor,
+			@RequestParam("idUsuario") int idUsuario,
+			@RequestParam("idGenero") int idGenero) {
+
+		Libro bean = new Libro();
+
+		bean.setTitulo(titulo);
+		bean.setDescripcion(descripcion);
+		bean.setAutor(autor);
+		bean.setEstado(1);
 		bean.setRegistro(LocalDate.now());
 
-		bean.setEstado(1);
+		Usuario usuario = serUsuario.buscarPorId(idUsuario);
+	    Genero genero = serGenero.buscarPorId(idGenero);
+	    bean.setUsuario(usuario);
+	    bean.setGenero(genero);
 
-		if (bean.getUsuario().getId() == 0) {
-		    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Falta de usuario");
-		}else {
-			Usuario u = serUsuario.buscarPorId(bean.getUsuario().getId());
-			if (u == null) {
-		        throw new NotFoundException();
-		    }
-			bean.setUsuario(u);
+	    String ruta = "src/main/resources";
+	    
+		for (MultipartFile archivos : archivo) {
+			String nombreArchivo = archivos.getOriginalFilename();
+			String nuevoNombreArchivo = nombreArchivo.replaceAll("\\s+", "_");
+			System.out.println("Nombre del archivo: " + nuevoNombreArchivo);
+			bean.setArchivo(nuevoNombreArchivo);
+			
+			 try {
+		            byte[] bytes = archivos.getBytes();
+		            Path path = Paths.get(ruta + "/pdfs/" + nuevoNombreArchivo);
+		            Files.write(path, bytes);
+		            System.out.println("Archivo guardado en: " + path.toString());
+		        } catch (IOException e) {
+		            e.printStackTrace();
+		        }
+			
 		}
+
+		for (MultipartFile portadas : portada) {
+			String nombrePortada = portadas.getOriginalFilename();
+			String nuevoNombrePortada = nombrePortada.replaceAll("\\s+", "_");
+			System.out.println("Nombre de la portada: " + nuevoNombrePortada);
+			bean.setPortada(nuevoNombrePortada);
+			try {
+	            byte[] bytes = portadas.getBytes();
+	            Path path = Paths.get(ruta + "/portadas/" + nuevoNombrePortada);
+	            Files.write(path, bytes);
+	            System.out.println("Portada guardada en: " + path.toString());
+	        } catch (IOException e) {
+	            e.printStackTrace();
+	        }
+		}
+
+		
+		System.out.println(archivo);
+		System.out.println(portada);
 		
 		
-		
+
 		serLibro.registrar(bean);
 
-		return ResponseEntity.status(HttpStatus.CREATED).body("Libro " + bean.getTitulo() + " registrado correctamente");
+		return ResponseEntity.status(HttpStatus.CREATED)
+				.body("Libro " + bean.getTitulo() + " registrado correctamente");
 	}
 
+	
 	@PutMapping("/actualizar")
 	public ResponseEntity<String> actualizar(@RequestBody Libro bean) {
 		Libro lib = validarLibro(bean.getId());
@@ -116,7 +206,7 @@ public class LibroController {
 		}
 		return g;
 	}
-	
+
 	private Usuario validarUsuario(Integer codigo) {
 		Usuario u = serUsuario.buscarPorId(codigo);
 		if (u == null) {
