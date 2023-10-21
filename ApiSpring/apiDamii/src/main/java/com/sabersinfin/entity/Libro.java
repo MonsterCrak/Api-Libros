@@ -47,7 +47,7 @@ public class Libro {
     private LocalDate registro;
 
     @Column(name = "estado", nullable = false)
-    private int estado;
+    private boolean estado;
 
     @ManyToOne
     @JoinColumn(name = "id_usuario")

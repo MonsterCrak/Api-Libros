@@ -5,18 +5,15 @@ insert into tb_rol values
 (2, 'visitante');
 
 insert into tb_enlace values 
-(1, 'usuario', 1, '/api/usuario'),
-(2, 'Dashboard', 1, '/inicio/dashboard'),
-(3, 'Libros', 1, '/inicio/libros'),
-(4, 'publicados', 1, '/inicio/publicaciones'),
-(5, 'Libros', 1, '/inicio/librostabla');
+(1, 'Dashboard', 1, '/inicio/dashboard'),
+(2, 'Libros', 1, '/inicio/publicaciones'),
+(3, 'Mantenimiento Libros', 1, '/inicio/librostabla');
 
 insert into tb_rol_has_enlace values  
-(1, 1),
+(1, 2),
+(2, 1),
 (2, 2),
-(3, 1),
-(4, 2),
-(5,1); 
+(3, 1); 
 
 
 
