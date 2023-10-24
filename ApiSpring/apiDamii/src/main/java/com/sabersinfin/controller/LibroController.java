@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -154,11 +155,11 @@ public class LibroController {
 	}
 
 	@PutMapping("/actualizar")
-	public ResponseEntity<String> actualizar(@RequestParam("archivo") MultipartFile[] archivo,
-	        @RequestParam("portada") MultipartFile[] portada, @RequestParam("titulo") String titulo,
-	        @RequestParam("descripcion") String descripcion, @RequestParam("autor") String autor,
-	        @RequestParam("estado") boolean estado, @RequestParam("idUsuario") int idUsuario,
-	        @RequestParam("idGenero") int idGenero, @RequestParam("idLibro") int idLibro) {
+	public ResponseEntity<String> actualizar(@RequestParam(value = "archivo", required = false) MultipartFile[] archivo,
+	    @RequestParam(value = "portada", required = false) MultipartFile[] portada, @RequestParam("titulo") String titulo,
+	    @RequestParam("descripcion") String descripcion, @RequestParam("autor") String autor,
+	    @RequestParam("estado") boolean estado, @RequestParam("idUsuario") int idUsuario,
+	    @RequestParam("idGenero") int idGenero, @RequestParam("idLibro") int idLibro) {
 
 	    Libro bean = serLibro.buscarPorId(idLibro);
 
@@ -166,7 +167,6 @@ public class LibroController {
 	        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("{ \"message\": \"Libro no encontrado\" }");
 	    }
 
-	    // Obtener los nombres originales de archivo y portada
 	    String nombreArchivoOriginal = bean.getArchivo();
 	    String nombrePortadaOriginal = bean.getPortada();
 
@@ -181,7 +181,7 @@ public class LibroController {
 
 	    if (bean.getUsuario().getId() == 0 || bean.getGenero().getId() == 0) {
 	        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-	                .body("{ \"message\": \"Usuario o género no encontrado\" }");
+	            .body("{ \"message\": \"Usuario o género no encontrado\" }");
 	    }
 
 	    bean.setUsuario(usuario);
@@ -189,9 +189,9 @@ public class LibroController {
 
 	    String ruta = "src/main/resources";
 
-	    for (MultipartFile nuevoArchivo : archivo) {
+	    if (archivo != null && archivo.length > 0) {
 	        try {
-	            byte[] bytes = nuevoArchivo.getBytes();
+	            byte[] bytes = archivo[0].getBytes();
 	            Path path = Paths.get(ruta + "/pdfs/" + nombreArchivoOriginal);
 	            Files.write(path, bytes);
 	            System.out.println("Archivo actualizado en: " + path.toString());
@@ -200,9 +200,9 @@ public class LibroController {
 	        }
 	    }
 
-	    for (MultipartFile nuevaPortada : portada) {
+	    if (portada != null && portada.length > 0) {
 	        try {
-	            byte[] bytes = nuevaPortada.getBytes();
+	            byte[] bytes = portada[0].getBytes();
 	            Path path = Paths.get(ruta + "/portadas/" + nombrePortadaOriginal);
 	            Files.write(path, bytes);
 	            System.out.println("Portada actualizada en: " + path.toString());
@@ -221,10 +221,12 @@ public class LibroController {
 	@GetMapping("/buscar/{codigo}")
 	public ResponseEntity<Libro> buscar(@PathVariable("codigo") Integer codigo) {
 		Libro lib = validarLibro(codigo);
+		
+		Libro libroConEnlaces = serLibro.buscarPorId(lib.getId());
+	    libroConEnlaces.setArchivo(RUTA_RECURSOS + "/pdfs/" + libroConEnlaces.getArchivo());
+	    libroConEnlaces.setPortada(RUTA_RECURSOS + "/portadas/" + libroConEnlaces.getPortada());
 
-		serLibro.buscarPorId(lib.getId());
-
-		return new ResponseEntity<>(lib, HttpStatus.OK);
+	    return new ResponseEntity<>(libroConEnlaces, HttpStatus.OK);
 	}
 
 	@GetMapping("/buscarPorGenero/{codigoGenero}")
@@ -236,6 +238,34 @@ public class LibroController {
 		return new ResponseEntity<>(libros, HttpStatus.OK);
 	}
 
+	@DeleteMapping("/eliminar/{id}")
+	public ResponseEntity<String> eliminarLibro(@PathVariable("id") int id) {
+	    Libro libro = serLibro.buscarPorId(id);
+
+	    if (libro == null) {
+	        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("{ \"message\": \"Libro no encontrado\" }");
+	    }
+
+	    try {
+	        // Eliminar archivo y portada si existen
+	        if (libro.getArchivo() != null) {
+	            Files.deleteIfExists(Paths.get("src/main/resources/pdfs/" + libro.getArchivo()));
+	        }
+	        if (libro.getPortada() != null) {
+	            Files.deleteIfExists(Paths.get("src/main/resources/portadas/" + libro.getPortada()));
+	        }
+
+	        serLibro.eliminarPorId(id);
+
+	        return ResponseEntity.status(HttpStatus.OK).body("{ \"message\": \"Libro eliminado\" }");
+	    } catch (IOException e) {
+	        e.printStackTrace();
+	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+	                .body("{ \"message\": \"Error al eliminar el libro\" }");
+	    }
+	}
+
+	
 	private Libro validarLibro(Integer codigo) {
 		Libro lib = serLibro.buscarPorId(codigo);
 		if (lib == null) {
