@@ -23,5 +23,13 @@ public class LibroServices extends ICRUDImpl<Libro, Integer>{
 	public List<Libro> buscarPorGenero(int codigoGenero) {
 	    return repo.findByCodigoGenero(codigoGenero);
 	}
+	
+	public String obtenerUltimoNombreArchivo() {
+        return repo.obtenerUltimoNombreArchivo();
+    }
+
+    public String obtenerUltimoNombrePortada() {
+        return repo.obtenerUltimoNombrePortada();
+    }
 
 }

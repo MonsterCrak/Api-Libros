@@ -108,10 +108,22 @@ public class LibroController {
 		bean.setGenero(genero);
 
 		String ruta = "src/main/resources";
+		
+		String ultimoNombreArchivo = serLibro.obtenerUltimoNombreArchivo();
+		String ultimoNombrePortada = serLibro.obtenerUltimoNombrePortada();
+
+		if (ultimoNombreArchivo != null && ultimoNombrePortada != null) {
+		    int ultimoNumeroArchivo = Integer.parseInt(ultimoNombreArchivo.split("-")[0]);
+		    int ultimoNumeroPortada = Integer.parseInt(ultimoNombrePortada.split("-")[0]);
+		    contArchivo = ultimoNumeroArchivo + 1;
+		    contPortada = ultimoNumeroPortada + 1;
+		}
 
 		for (MultipartFile archivos : archivo) {
 			String nombreArchivoOriginal = archivos.getOriginalFilename();
 			String extension = nombreArchivoOriginal.substring(nombreArchivoOriginal.lastIndexOf('.'));
+			
+			
 			String nuevoNombreArchivo = contArchivo + "-a" + extension;
 
 			System.out.println("Nombre del archivo: " + nuevoNombreArchivo);
@@ -247,7 +259,6 @@ public class LibroController {
 	    }
 
 	    try {
-	        // Eliminar archivo y portada si existen
 	        if (libro.getArchivo() != null) {
 	            Files.deleteIfExists(Paths.get("src/main/resources/pdfs/" + libro.getArchivo()));
 	        }
@@ -282,4 +293,7 @@ public class LibroController {
 		return g;
 	}
 
+	
+	
+	
 }
