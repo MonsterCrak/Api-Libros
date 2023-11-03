@@ -11,6 +11,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -29,6 +30,7 @@ import com.sabersinfin.utils.Key;
 import com.sabersinfin.utils.Mensaje;
 
 import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api")
@@ -88,44 +90,9 @@ public class AuthController {
 		return new ResponseEntity<Mensaje>(new Mensaje("Contraseña modificada"),HttpStatus.OK);
 	}
 	
-	/*
-	@PostMapping("/registrar")
-	public ResponseEntity<?> registrar(@Valid @RequestBody Usuario usuario,BindingResult result){
-		
-		if(result.hasErrors()) {
-			return new ResponseEntity<Mensaje>(new Mensaje("Error de validación"),HttpStatus.BAD_REQUEST);
-		}
-		if(SUsuario.existeUsuario(usuario.getEmail())) {
-			return new ResponseEntity<Mensaje>(new Mensaje("El username ya se encuentra registrado"),HttpStatus.BAD_REQUEST);
-		}
-		if(SUsuario.existeCorreo(usuario.getCorreo())) {
-			return new ResponseEntity<Mensaje>(new Mensaje("El correo ya se encuentra registrado"),HttpStatus.BAD_REQUEST);
-		}
-		if(SPersona.existeCelular(usuario.getPersona().getCelular())) {
-			return new ResponseEntity<Mensaje>(new Mensaje("El celular ya se encuentra registrado"),HttpStatus.BAD_REQUEST);
-		}
-		if(SPersona.existeDNI(usuario.getPersona().getDni())) {
-			return new ResponseEntity<Mensaje>(new Mensaje("El DNI ya se encuentra registrado"),HttpStatus.BAD_REQUEST);
-		}
-		
-		//Registramos a la persona
-		Persona p = SPersona.registrar(usuario.getPersona());
-		usuario.setPersona(p);
-		
-		//Definimos el rol cliente
-		Rol rol = new Rol();
-		rol.setId(4);
-		usuario.setRol(rol);
-		
-		//Encriptamos el password del usuario
-		usuario.setPassword(encoder.encode(usuario.getPassword()));
-		
-		//Registramos al cliente
-		Usuario user = SUsuario.registrar(usuario);
-		return new ResponseEntity<Usuario>(user,HttpStatus.CREATED);
-	}
-	
 	*/
+	
+
 	
 	@PostMapping("/login")
 	public ResponseEntity<JwtDto> login(@RequestBody LoginUsuario loginUsuario) {

@@ -1,5 +1,6 @@
 package com.sabersinfin.entity;
 
+import java.sql.Blob;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -11,6 +12,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
@@ -38,15 +40,17 @@ public class Libro {
     @Column(name = "archivo", nullable = false)
     private String archivo;
     
+    @Column(name = "portada", nullable = false)
+    private String portada;
+    
     @Column(name = "registro", nullable = false)
     private LocalDate registro;
 
     @Column(name = "estado", nullable = false)
-    private int estado;
+    private boolean estado;
 
     @ManyToOne
     @JoinColumn(name = "id_usuario")
-    @JsonIgnore
     private Usuario usuario;
 
     @OneToMany(mappedBy = "libro")
