@@ -47,9 +47,10 @@ public class UsuarioServices extends ICRUDImpl<Usuario, Integer>{
         return repo.findByEmail(email);
     }
     
-    public boolean existeEmail(String email) {
-		return repo.existsByEmail(email);
-	}
+    public Boolean existeEmail(String email) {
+        return repo.existsByEmail(email);
+    }
+
 
     
     public Usuario buscarPorEmail(String correo) {
