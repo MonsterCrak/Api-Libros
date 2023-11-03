@@ -19,7 +19,6 @@ insert into tb_rol_has_enlace values
 (4, 2);
 
 
-
 insert into tb_genero values
 (1, 'Ciencia Ficción'),
 (2, 'Cocina'),
