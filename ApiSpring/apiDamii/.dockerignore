@@ -1,0 +1,10 @@
+Dockerfile
+*.jar
+.dockerignore
+.git
+.gitignore
+.mvn
+.mvnignore
+.vscode
+*.class
+*.log
